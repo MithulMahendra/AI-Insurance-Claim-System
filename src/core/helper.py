@@ -33,3 +33,5 @@ def get_vector_store(collection_name: str = "policy_docs"):
         embeddings=get_embedding_model(),
         use_jsonb=True
     )
+
+
