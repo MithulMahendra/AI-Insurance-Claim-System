@@ -5,6 +5,7 @@ from src.api.v1.schemas.query_schema import QueryRequest, QueryResponse
 router = APIRouter(tags=["Query"])
 
 
+# Query Upload
 @router.post("/query", response_model=QueryResponse)
 def query_endpoint(request: QueryRequest):
  
