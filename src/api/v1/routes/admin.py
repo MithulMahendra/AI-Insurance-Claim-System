@@ -3,13 +3,13 @@ from src.api.v1.services.upload_service import process_and_ingest_document
 
 router = APIRouter(tags=["Admin"])
 
-
+# Document Upload 
 @router.post("/upload")
 def upload_document(file: UploadFile = File(...)):
 
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(
-            status_code=400,
+            status_code=500,
             detail="Only PDF files are allowed"
         )
 
