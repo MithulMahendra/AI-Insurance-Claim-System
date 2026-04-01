@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 
 
+# Query Request Model
 class QueryRequest(BaseModel):
     query: str = Field(..., min_length=1, description="User query")
     session_id: str = Field(
@@ -19,10 +20,12 @@ class QueryRequest(BaseModel):
             "Used to personalise the LLM response."
         )
     )
+
+# Query Response Model
 class QueryResponse(BaseModel):
     query: str = Field(..., description="The original user query.")
     answer: str = Field(..., description="Synthesised answer from retrieved chunks.")
-    citation: str = Field(..., description="Verbatim excerpt from the source document.")
+    citation: str = Field(..., description="A literal extract from the primary document.")
     page_no: Optional[int] = Field(
         default=None, description="Page number in the source PDF (0-indexed)."
     )
