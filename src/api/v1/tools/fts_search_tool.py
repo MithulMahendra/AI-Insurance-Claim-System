@@ -3,8 +3,6 @@ fts_search_tool.py
 ------------------
 LangChain Tool: Full-Text Search (FTS) via PostgreSQL tsvector / ts_rank.
 
-Best for: queries containing policy codes, ticket IDs, short abbreviations
-          (e.g. 'LTA', 'POL-2024-HR-007', 'ESI'), or exact keyword matches.
 """
 
 import os
@@ -43,13 +41,13 @@ _FTS_SQL = """
 @tool
 def fts_search(query: str, k: int = 5) -> list[dict]:
     """
-    Perform a full-text (keyword) search against the HR knowledge base using
+    Perform a full-text (keyword) search against the Insurance & Policy Knowledge Base using
     PostgreSQL tsvector and ts_rank scoring.
 
     Use this tool when the query contains:
     - Policy or ticket codes  (e.g. 'POL-2024-HR-007')
-    - Uppercase abbreviations (e.g. 'LTA', 'CTC', 'ESI')
-    - Long employee/numeric IDs
+    - Search through the policies
+    - define claim id
     - Exact keyword matches
 
     Args:
