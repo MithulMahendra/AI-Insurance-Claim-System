@@ -19,3 +19,17 @@ class QueryRequest(BaseModel):
             "Used to personalise the LLM response."
         )
     )
+class QueryResponse(BaseModel):
+    query: str = Field(..., description="The original user query.")
+    answer: str = Field(..., description="Synthesised answer from retrieved chunks.")
+    citation: str = Field(..., description="Verbatim excerpt from the source document.")
+    page_no: Optional[int] = Field(
+        default=None, description="Page number in the source PDF (0-indexed)."
+    )
+    document_name: str = Field(
+        ..., description="Filename of the source document."
+    )
+    relevant_chunks: List[str] = Field(
+        default_factory=list, 
+        description="List of the exact text chunks retrieved from the tool that were used to answer the query."
+    )
