@@ -11,26 +11,29 @@ QUERY_URL  = f"{API_BASE}/query"
 UPLOAD_URL = f"{API_BASE}/admin/upload"
 
 # ─────────────────────────────────────────────────────────────
-# PROFILE JSON TEMPLATES
+# CLAIM JSON TEMPLATES
 # ─────────────────────────────────────────────────────────────
-PROFILE_TEMPLATES = {
-    "policy": {
-        "type": "policy",
-        "department": "Motor Claims",
-        "grade": "Comprehensive"
-    },
-    "claim": {
-        "type": "claim",
-        "employee_id": "E12345",
-        "claim_id": "CLM001",
+CLAIM_TEMPLATES = {
+    "Motor": {
         "claim_type": "Motor",
-        "claim_amount": 300000
+        "policy_number": "MTR-00123",
+        "vehicle_make": "Toyota",
+        "incident_date": "2026-03-20",
+        "estimated_loss": 50000
     },
-    "insurance": {
-        "type": "insurance",
-        "employee_id": "E12345",
-        "policy_number": "POL00234",
-        "coverage_type": "Motor"
+    "Health": {
+        "claim_type": "Health",
+        "policy_number": "HLT-00456",
+        "patient_name": "Jane Doe",
+        "admission_date": "2026-03-25",
+        "claim_amount": 150000
+    },
+    "Home": {
+        "claim_type": "Home",
+        "policy_number": "HOM-00789",
+        "property_type": "Apartment",
+        "damage_cause": "Fire",
+        "claim_amount": 250000
     }
 }
 
@@ -86,6 +89,7 @@ def _init():
         "session_id":       str(uuid.uuid4()),
         "messages":         [],          # {role, content, citation, page_no, doc, relevant_chunks}
         "customer_context": "",          # JSON string
+        "prev_category":    "None"       # Tracks dropdown changes
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -104,49 +108,54 @@ with st.sidebar:
     page = st.radio("", ["Chat", "Admin"], label_visibility="collapsed")
     st.divider()
 
-    st.markdown("**Query as (JSON)**")
+    st.markdown("**Claim Context**")
 
-    template_choice = st.selectbox(
-        "Insert profile template",
-        ["None", "policy", "claim", "insurance"]
+    # Policy Category Dropdown
+    policy_category = st.selectbox(
+        "Select Policy Category",
+        ["None", "Motor", "Health", "Home"]
     )
 
-    # If a template is chosen, populate the text area
-    if template_choice != "None":
-        st.session_state.customer_context = json.dumps(
-            PROFILE_TEMPLATES[template_choice], indent=2
-        )
+    # Detect if the user changed the dropdown to populate new default JSON
+    if policy_category != st.session_state.prev_category:
+        if policy_category != "None":
+            st.session_state.customer_context = json.dumps(
+                CLAIM_TEMPLATES[policy_category], indent=2
+            )
+        else:
+            st.session_state.customer_context = ""
+        st.session_state.prev_category = policy_category
 
     json_text = st.text_area(
-        "Paste / edit JSON",
+        "Claim Details (Edit JSON)",
         value=st.session_state.customer_context,
         height=220
     )
 
     c1, c2 = st.columns(2)
     with c1:
-        if st.button("Save profile", use_container_width=True):
+        if st.button("Save context", use_container_width=True):
             try:
                 if json_text.strip():
                     json.loads(json_text) # Validate JSON
                     st.session_state.customer_context = json_text
-                    st.success("Profile saved")
+                    st.success("Context saved")
                 else:
                     st.session_state.customer_context = ""
             except json.JSONDecodeError:
                 st.error("Invalid JSON")
 
     with c2:
-        if st.button("Clear profile", use_container_width=True):
+        if st.button("Clear context", use_container_width=True):
             st.session_state.customer_context = ""
             st.rerun()
 
     if st.session_state.customer_context:
         try:
             ctx_dict = json.loads(st.session_state.customer_context)
-            ident = ctx_dict.get("employee_id") or ctx_dict.get("policy_number") or ctx_dict.get("type", "").title()
+            ident = ctx_dict.get("policy_number") or ctx_dict.get("claim_type", "Active")
             if ident:
-                st.caption(f"👤 Active: {ident}")
+                st.caption(f"👤 Context Loaded: {ident}")
         except:
             pass
 
@@ -157,7 +166,7 @@ with st.sidebar:
         st.session_state.messages   = []
         st.rerun()
 
-    st.caption(f"Session `{st.session_state.session_id[:16]}…`")
+    st.caption(f"Session {st.session_state.session_id[:16]}…")
 
 
 # ─────────────────────────────────────────────────────────────
@@ -169,9 +178,9 @@ if page == "Chat":
 
     ctx_active = bool(st.session_state.customer_context.strip())
     if ctx_active:
-        st.caption("Personalising answers using provided JSON profile.")
+        st.caption("Personalising answers using provided JSON claim context.")
     else:
-        st.caption("Add a customer profile in the sidebar to get personalised answers.")
+        st.caption("Select a policy category in the sidebar to provide claim context.")
 
     st.divider()
 
