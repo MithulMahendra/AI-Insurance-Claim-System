@@ -3,16 +3,11 @@ import uuid
 import requests
 import streamlit as st
 
-# ─────────────────────────────────────────────────────────────
-# API CONFIG
-# ─────────────────────────────────────────────────────────────
 API_BASE   = "http://localhost:8000/api/v1"
 QUERY_URL  = f"{API_BASE}/query"
 UPLOAD_URL = f"{API_BASE}/admin/upload"
 
-# ─────────────────────────────────────────────────────────────
-# CLAIM JSON TEMPLATES
-# ─────────────────────────────────────────────────────────────
+
 CLAIM_TEMPLATES = {
     "Motor": {
         "claim_type": "Motor",
@@ -37,9 +32,7 @@ CLAIM_TEMPLATES = {
     }
 }
 
-# ─────────────────────────────────────────────────────────────
-# PAGE CONFIG & STYLES
-# ─────────────────────────────────────────────────────────────
+
 st.set_page_config(
     page_title="Policy Assistant",
     page_icon="📄",
@@ -81,9 +74,7 @@ textarea {
 """, unsafe_allow_html=True)
 
 
-# ─────────────────────────────────────────────────────────────
-# SESSION INITIALIZATION
-# ─────────────────────────────────────────────────────────────
+
 def _init():
     defaults = {
         "session_id":       str(uuid.uuid4()),
@@ -98,9 +89,7 @@ def _init():
 _init()
 
 
-# ─────────────────────────────────────────────────────────────
-# SIDEBAR
-# ─────────────────────────────────────────────────────────────
+
 with st.sidebar:
     st.markdown("## 📄 Policy Assistant")
     st.divider()
@@ -110,13 +99,11 @@ with st.sidebar:
 
     st.markdown("**Claim Context**")
 
-    # Policy Category Dropdown
     policy_category = st.selectbox(
         "Select Policy Category",
         ["None", "Motor", "Health", "Home"]
     )
 
-    # Detect if the user changed the dropdown to populate new default JSON
     if policy_category != st.session_state.prev_category:
         if policy_category != "None":
             st.session_state.customer_context = json.dumps(
@@ -169,9 +156,6 @@ with st.sidebar:
     st.caption(f"Session {st.session_state.session_id[:16]}…")
 
 
-# ─────────────────────────────────────────────────────────────
-# CHAT PAGE
-# ─────────────────────────────────────────────────────────────
 if page == "Chat":
 
     st.markdown("### Ask a policy question")
@@ -184,13 +168,12 @@ if page == "Chat":
 
     st.divider()
 
-    # Render existing messages
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"], avatar="🧑‍💼" if msg["role"] == "user" else "🤖"):
             st.markdown(msg["content"])
             
             if msg["role"] == "assistant":
-                # Render Citation
+          
                 if msg.get("citation"):
                     page_no = msg.get("page_no")
                     doc     = msg.get("doc", "")
@@ -198,12 +181,10 @@ if page == "Chat":
                     with st.expander(f"📎 Source  —  {meta}" if meta else "📎 Source"):
                         st.markdown(f"{msg['citation']}")
                 
-                # Render Relevant Chunks (JSON)
                 if msg.get("relevant_chunks"):
                     with st.expander("🧩 View Relevant Chunks (JSON)"):
                         st.json(msg["relevant_chunks"])
 
-    # Chat input
     user_input = st.chat_input("Type your question…")
 
     if user_input:
@@ -234,18 +215,15 @@ if page == "Chat":
 
                     st.markdown(answer)
 
-                    # Display Citation
                     if citation:
                         meta = " · ".join(filter(None, [doc, f"Page {page_no}" if page_no else None]))
                         with st.expander(f"📎 Source  —  {meta}" if meta else "📎 Source"):
                             st.markdown(f"{citation}")
                     
-                    # Display Relevant Chunks
                     if chunks:
                         with st.expander("🧩 View Relevant Chunks (JSON)"):
                             st.json(chunks) 
 
-                    # Save to session state
                     st.session_state.messages.append({
                         "role":            "assistant",
                         "content":         answer,
@@ -263,9 +241,6 @@ if page == "Chat":
                     st.error(str(e))
 
 
-# ─────────────────────────────────────────────────────────────
-# ADMIN PAGE
-# ─────────────────────────────────────────────────────────────
 elif page == "Admin":
 
     st.markdown("### Upload a policy document")
